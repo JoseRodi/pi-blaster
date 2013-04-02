@@ -49,6 +49,8 @@ static uint8_t pin2gpio[] = {
 
 #define NUM_CHANNELS		(sizeof(pin2gpio)/sizeof(pin2gpio[0]))
 
+static int pinwatched[NUM_CHANNELS];
+
 #define DEVFILE			"/dev/pi-blaster"
 
 #define PAGE_SIZE		4096
@@ -290,7 +292,7 @@ update_pwm()
 	/*   Now create a mask of all the pins that should be on */
 	mask = 0;
 	for (i = 0; i < NUM_CHANNELS; i++) {
-		if (channel_pwm[i] > 0) {
+		if (channel_pwm[i] > 0 && pinwatched[i]) {
 			mask |= 1 << pin2gpio[i];
 		}
 	}
@@ -305,7 +307,7 @@ update_pwm()
 			ctl->cb[j*2].dst = phys_gpclr0;
 		mask = 0;
 		for (i = 0; i < NUM_CHANNELS; i++) {
-			if ((float)j/NUM_SAMPLES > channel_pwm[i])
+			if ((float)j/NUM_SAMPLES > channel_pwm[i] && pinwatched[i])
 				mask |= 1 << pin2gpio[i];
 		}
 		ctl->sample[j] = mask;
@@ -385,6 +387,7 @@ init_ctrl_data(void)
 	// Calculate a mask to turn off all the servos
 	mask = 0;
 	for (i = 0; i < NUM_CHANNELS; i++)
+          if (pinwatched[i])
 		mask |= 1 << pin2gpio[i];
 	for (i = 0; i < NUM_SAMPLES; i++)
 		ctl->sample[i] = mask;
@@ -508,11 +511,18 @@ go_go_go(void)
 		//fprintf(stderr, "[%d]%s", n, lineptr);
 		n = sscanf(lineptr, "%d=%f%c", &servo, &value, &nl);
 		if (n !=3 || nl != '\n') {
-			fprintf(stderr, "Bad input: %s", lineptr);
+                  n = sscanf(lineptr, "release %d", &servo);
+                  if (n != 1 || nl != '\n') {
+                    fprintf(stderr, "Bad input: %s", lineptr);
+                  } else {
+                    pinwatched[servo] = 0;
+                  }
 		} else if (servo < 0 || servo >= NUM_CHANNELS) {
 			fprintf(stderr, "Invalid channel number %d\n", servo);
+		} else if (value == -1) {
+			fatal("Invalid value %f\n", value);
 		} else if (value < 0 || value > 1) {
-			fatal(stderr, "Invalid value %f\n", value);
+			fprintf(stderr, "Invalid value %f\n", value);
 		} else {
 			set_pwm(servo, value);
 		}
@@ -584,6 +594,8 @@ parseargs(int argc, char **argv)
 int
 main(int argc, char **argv)
 {
+        int pi;
+        for (pi = 0; pi < NUM_CHANNELS; pi++) { pinwatched[pi] = 1; }
 	int i;
 
 	parseargs(argc, argv);
@@ -614,8 +626,10 @@ main(int argc, char **argv)
 	make_pagemap();
 
 	for (i = 0; i < NUM_CHANNELS; i++) {
+          if (pinwatched[i]) {
 		gpio_set(pin2gpio[i], invert_mode);
 		gpio_set_mode(pin2gpio[i], GPIO_MODE_OUT);
+          }
 	}
 
 	init_ctrl_data();
