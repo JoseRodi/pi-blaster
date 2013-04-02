@@ -512,7 +512,7 @@ go_go_go(void)
 		} else if (servo < 0 || servo >= NUM_CHANNELS) {
 			fprintf(stderr, "Invalid channel number %d\n", servo);
 		} else if (value < 0 || value > 1) {
-			fprintf(stderr, "Invalid value %f\n", value);
+			fatal(stderr, "Invalid value %f\n", value);
 		} else {
 			set_pwm(servo, value);
 		}
