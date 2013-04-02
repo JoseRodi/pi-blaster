@@ -200,8 +200,9 @@ udelay(int us)
 static void
 terminate(int dummy)
 {
+	fprintf(stderr, "terminating");
 	int i;
-
+        
 	if (dma_reg && virtbase) {
 		for (i = 0; i < NUM_CHANNELS; i++)
 			channel_pwm[i] = 0;
@@ -518,9 +519,11 @@ go_go_go(void)
                       fprintf(stderr, "Bad input: %s", lineptr);
                     } else {
                       pinwatched[servo] = 1;
+                      update_pwm();
                     }
                   } else {
                     pinwatched[servo] = 0;
+                    update_pwm();
                   }
 		} else if (servo < 0 || servo >= NUM_CHANNELS) {
 			fprintf(stderr, "Invalid channel number %d\n", servo);
