@@ -277,7 +277,7 @@ set_pwm(int channel, float width)
 static void
 update_pwm()
 {
-  int ii;
+        int ii;
   	for (ii = 0; ii < NUM_CHANNELS; ii++) {
           if (pinwatched[ii]) {
 		gpio_set(pin2gpio[ii], invert_mode);
