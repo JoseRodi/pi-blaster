@@ -27,7 +27,7 @@ def wiringpi_naming():
     PINMAP = {7:0, 0:1, 1:2, 2:3, 3:4, 4:5, 5:6, 6:7}
 
 def board_naming():
-    global PINMAP()
+    global PINMAP
     PINMAP = {7:0, 11:1, 12:2, 13:3, 15:4, 16:5, 18:6, 22:7}
 
 def restart():
