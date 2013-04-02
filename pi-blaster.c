@@ -513,14 +513,19 @@ go_go_go(void)
 		if (n !=3 || nl != '\n') {
                   n = sscanf(lineptr, "release %d", &servo);
                   if (n != 1 || nl != '\n') {
-                    fprintf(stderr, "Bad input: %s", lineptr);
+                    n = sscanf(lineptr, "lock %d", &servo);
+                    if (n != 1 || nl != '\n') {
+                      fprintf(stderr, "Bad input: %s", lineptr);
+                    } else {
+                      pinwatched[servo] = 1;
+                    }
                   } else {
                     pinwatched[servo] = 0;
                   }
 		} else if (servo < 0 || servo >= NUM_CHANNELS) {
 			fprintf(stderr, "Invalid channel number %d\n", servo);
-		} else if (value == -1) {
-			fatal("Invalid value %f\n", value);
+                        //		} else if (value == -1) {
+			//fatal("Invalid value %f\n", value);
 		} else if (value < 0 || value > 1) {
 			fprintf(stderr, "Invalid value %f\n", value);
 		} else {
@@ -595,7 +600,7 @@ int
 main(int argc, char **argv)
 {
         int pi;
-        for (pi = 0; pi < NUM_CHANNELS; pi++) { pinwatched[pi] = 1; }
+        for (pi = 0; pi < NUM_CHANNELS; pi++) { pinwatched[pi] = 0; }
 	int i;
 
 	parseargs(argc, argv);
