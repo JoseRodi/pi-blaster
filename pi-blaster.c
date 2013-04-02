@@ -277,6 +277,14 @@ set_pwm(int channel, float width)
 static void
 update_pwm()
 {
+  	for (i = 0; i < NUM_CHANNELS; i++) {
+          if (pinwatched[i]) {
+		gpio_set(pin2gpio[i], invert_mode);
+		gpio_set_mode(pin2gpio[i], GPIO_MODE_OUT);
+          }
+	}
+
+
 	uint32_t phys_gpclr0 = 0x7e200000 + 0x28;
 	uint32_t phys_gpset0 = 0x7e200000 + 0x1c;
 	struct ctl *ctl = (struct ctl *)virtbase;
